@@ -12,5 +12,9 @@ plt.plot(df["ind"][-100:], df["close"][-100:], label="close")
 plt.plot(df["ind"][-100:], M20[-100:], label="M20")
 plt.plot(df["ind"][-100:], M10[-100:], label="M10")
 
+# hello
+
 plt.legend()
 plt.show()
+
+
