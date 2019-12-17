@@ -29,7 +29,6 @@ for i in range(1, 50):
             c1 = (c11 - cp) / cp
             c2 = (c21 - cp) / cp
             c3 = (c31 - cp) / cp
-            # print(c1, c2, c3)
             pc = (c1 * c11 + c2 * c21 + c3 * c31) / (abs(c1) + abs(c2) + abs(c3))
 
             # print(df["close"][i - 9:i + 4])
