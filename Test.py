@@ -1,86 +1,51 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import cv2
+
+
+def relative_strength_index(df, n):
+    """Calculate Relative Strength Index(RSI) for given data.
+
+    :param df: pandas.DataFrame
+    :param n:
+    :return: pandas.DataFrame
+    """
+    i = 0
+    UpI = [0]
+    DoI = [0]
+    while i + 1 <= df.index[-1]:
+        UpMove = df.loc[i + 1, 'high'] - df.loc[i, 'high']
+        DoMove = df.loc[i, 'low'] - df.loc[i + 1, 'low']
+        if UpMove > DoMove and UpMove > 0:
+            UpD = UpMove
+        else:
+            UpD = 0
+        UpI.append(UpD)
+        if DoMove > UpMove and DoMove > 0:
+            DoD = DoMove
+        else:
+            DoD = 0
+        DoI.append(DoD)
+        i = i + 1
+    UpI = pd.Series(UpI)
+    DoI = pd.Series(DoI)
+    PosDI = pd.Series(UpI.ewm(span=n, min_periods=n).mean())
+    NegDI = pd.Series(DoI.ewm(span=n, min_periods=n).mean())
+    RSI = pd.Series(PosDI / (PosDI + NegDI), name='RSI_' + str(n))
+    df = df.join(RSI)
+    return df
+
 
 import pandas as pd
 
-ar = []
+df = pd.read_csv("Data/1.csv", names=['ind', 'open', 'high', 'low', 'close', 'volume'])
+df = relative_strength_index(df, 14)
 
-for i in range(1, 50):
-    df = pd.read_csv("Data/" + str(i) + ".csv", names=['ind', 'open', 'high', 'low', 'close', 'volume'])
+df["close"] = (df["close"] - df["close"].min()) / (df["close"].max() - df["close"].min())
+M20 = df["close"].rolling(20).mean()
+M10 = df["close"].rolling(10).mean()
 
-    df["close"] = (df["close"] - df["close"].min()) / (df["close"].max() - df["close"].min())
-    M20 = df["close"].rolling(20).mean()
-    M10 = df["close"].rolling(10).mean()
-
-    for i in range(30, len(M20) - 3):
-
-        p1 = M20[i] - M10[i]
-        p2 = M20[i - 1] - M10[i - 1]
-        p3 = M20[i - 2] - M10[i - 2]
-
-        if p1 < 0 < p3 and p2 >= 0:
-            cp = df["close"][i]
-
-            c11 = df["close"][i + 1]
-            c21 = df["close"][i + 2]
-            c31 = df["close"][i + 3]
-
-            c1 = (c11 - cp) / cp
-            c2 = (c21 - cp) / cp
-            c3 = (c31 - cp) / cp
-            pc = (c1 * c11 + c2 * c21 + c3 * c31) / (abs(c1) + abs(c2) + abs(c3))
-
-            # print(df["close"][i - 9:i + 4])
-            # print(cp, pc * 100)
-            ar.append(pc * 100)
-
-print(ar)
-# plt.xlim([0, 9])
-# plt.ylim([0, 1])
-# plt.plot(range(13), M20[i - 9:i + 4], label="M20", linewidth=4, color="g")
-# plt.plot(range(13), M10[i - 9:i + 4], label="M20", linewidth=4, color="b")
-# plt.plot(range(13), df["close"][i - 9:i + 4], label="M20", linewidth=4, color="r")
-# plt.show()
-
-# plt.plot(df["ind"], M20, label="M20")
-# plt.plot(df["ind"], M10, label="M20")
-# plt.show()
-
-#
-#
-# plt.rcParams['figure.figsize'] = [4, 2]
-# #
-# #
-# # M20 = df["close"].rolling(20).mean()
-# # M10 = df["close"].rolling(10).mean()
-# #
-# # VOl = df["volume"]
-# #
-# plt.bar(df["ind"][-10:], df["volume"][-10:], width=0.4, color='g')
-# #
-# # # # plt.plot(df["ind"][-10:], df["close"][-100:], label="close")
-# # # plt.plot(df["ind"][-10:], M20[-10:], label="M20")
-# # # plt.plot(df["ind"][-10:], M10[-10:], label="M10")
-# # #
-# # # # hello
-# plt.axis('off')
-# plt.savefig("vol.png", bbox_inches='tight', pad_inches=0)
-# # plt.clf()
-# # # plt.legend()
-# # plt.show()
-#
-#
-# import cv2
-#
-# img1 = cv2.imread('abc.png')
-# img2 = cv2.imread('vol.png')
-#
-# print(np.shape(img1))
-# print(np.shape(img2))
-# # img2 = cv2.resize(img2, (310, 155))
-# dst = np.concatenate((img1, img2), axis=0)
-# dst = cv2.resize(dst, (500, 500))
-# # cv2.imshow('image', dst)
-# cv2.imwrite('nw.png', dst)
-# # # cv2.waitKey(0)
+# print(RSI)
+plt.plot(df["ind"][-100:], df["RSI_14"][-100:])
+plt.show()
