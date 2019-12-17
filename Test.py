@@ -17,4 +17,5 @@ plt.plot(df["ind"][-100:], M10[-100:], label="M10")
 plt.legend()
 plt.show()
 
+# op1
 
